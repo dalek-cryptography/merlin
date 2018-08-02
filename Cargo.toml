@@ -1,6 +1,10 @@
 [package]
 name = "merlin"
 version = "0.1.0"
-authors = ["Henry de Valence <hdevalence@hdevalence.ca>"]
+authors = ["Henry de Valence <hdevalence@hdevalence.ca>",
+           "isis agora lovecruft <isis@patternsinthevoid.net>"]
 
 [dependencies]
+
+[dev-dependencies]
+strobe-rs = "0.3"
