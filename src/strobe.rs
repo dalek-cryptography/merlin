@@ -13,8 +13,8 @@ const FLAG_T: u8 = 1 << 3;
 const FLAG_M: u8 = 1 << 4;
 const FLAG_K: u8 = 1 << 5;
 
-fn transmute_state(st: &mut KeccakState) -> &mut [u64; 25] {
-    unsafe { &mut *(st as *mut KeccakState as *mut [u64; 25]) }
+fn transmute_state(st: &mut AlignedKeccakState) -> &mut [u64; 25] {
+    unsafe { &mut *(st as *mut AlignedKeccakState as *mut [u64; 25]) }
 }
 
 /// This is a wrapper around 200-byte buffer that's always 8-byte aligned
@@ -22,14 +22,14 @@ fn transmute_state(st: &mut KeccakState) -> &mut [u64; 25] {
 /// (since u64 words must be 8-byte aligned)
 #[derive(Clone)]
 #[repr(align(8))]
-struct KeccakState([u8; 200]);
+struct AlignedKeccakState([u8; 200]);
 
 /// A Strobe context for the 128-bit security level.
 ///
 /// Only `meta-AD`, `AD`, `KEY`, and `PRF` operations are supported.
 #[derive(Clone)]
 pub struct Strobe128 {
-    state: KeccakState,
+    state: AlignedKeccakState,
     pos: u8,
     pos_begin: u8,
     cur_flags: u8,
@@ -53,9 +53,9 @@ impl Drop for Strobe128 {
 impl Strobe128 {
     pub fn new(protocol_label: &[u8]) -> Strobe128 {
         let initial_state = {
-            let mut st = KeccakState([0u8; 200]);
-            st.0[0..6].copy_from_slice(&[1, STROBE_R + 2, 1, 0, 1, 96]);
-            st.0[6..18].copy_from_slice(b"STROBEv1.0.2");
+            let mut st = AlignedKeccakState([0u8; 200]);
+            st[0..6].copy_from_slice(&[1, STROBE_R + 2, 1, 0, 1, 96]);
+            st[6..18].copy_from_slice(b"STROBEv1.0.2");
             keccak::f1600(transmute_state(&mut st));
 
             st
@@ -168,7 +168,7 @@ impl Strobe128 {
     }
 }
 
-impl Deref for KeccakState {
+impl Deref for AlignedKeccakState {
     type Target = [u8; 200];
 
     fn deref(&self) -> &Self::Target {
@@ -176,7 +176,7 @@ impl Deref for KeccakState {
     }
 }
 
-impl DerefMut for KeccakState {
+impl DerefMut for AlignedKeccakState {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
