@@ -123,7 +123,7 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 /// However, because the protocol-specific behaviour is defined in a
 /// protocol-specific trait, different protocols can use the same
 /// [`Transcript`] instance without imposing any extra type constraints.
-#[derive(Clone)]
+#[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Transcript {
     strobe: Strobe128,
 }

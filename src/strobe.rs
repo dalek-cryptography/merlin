@@ -27,7 +27,7 @@ struct AlignedKeccakState([u8; 200]);
 /// A Strobe context for the 128-bit security level.
 ///
 /// Only `meta-AD`, `AD`, `KEY`, and `PRF` operations are supported.
-#[derive(Clone)]
+#[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Strobe128 {
     state: AlignedKeccakState,
     pos: u8,
@@ -179,6 +179,32 @@ impl Deref for AlignedKeccakState {
 impl DerefMut for AlignedKeccakState {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
+    }
+}
+
+impl PartialEq<Self> for AlignedKeccakState {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.0[..]).eq(&other.0[..])
+    }
+}
+
+impl Eq for AlignedKeccakState {}
+
+impl PartialOrd<Self> for AlignedKeccakState {
+    fn partial_cmp(&self, other: &Self) -> Option<::core::cmp::Ordering> {
+        (&self.0[..]).partial_cmp(&other.0[..])
+    }
+}
+
+impl Ord for AlignedKeccakState {
+    fn cmp(&self, other: &Self) -> ::core::cmp::Ordering {
+        (&self.0[..]).cmp(&other.0[..])
+    }
+}
+
+impl ::core::hash::Hash for AlignedKeccakState {
+    fn hash<H: ::core::hash::Hasher>(&self, state: &mut H) {
+        (&self.0[..]).hash(state)
     }
 }
 
