@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0
+
+* Rename transcript functions to avoid any possible confusion between
+  protocol-level "commitments" and transcript messages.
+* Move design docs to [merlin.cool](https://merlin.cool) and reorient
+  the Rust docs around the API.
+
 ## 1.0.3
 
 * Remove `rand` dependency in favor of `rand_core`.
