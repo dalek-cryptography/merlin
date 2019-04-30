@@ -237,8 +237,18 @@ impl Transcript {
     /// # Implementation
     ///
     /// Calls `append_message` with the little-endian encoding of `x`.
-    pub fn commit_u64(&mut self, label: &'static [u8], x: u64) {
+    pub fn append_u64(&mut self, label: &'static [u8], x: u64) {
         self.append_message(label, &encode_u64(x));
+    }
+
+    /// Deprecated.  This function was renamed to
+    /// [`append_u64`](Transcript::append_u64).
+    ///
+    /// This is intended to avoid any possible confusion between the
+    /// transcript-level messages and protocol-level commitments.
+    #[deprecated(since = "1.1.0", note = "renamed to append_u64 for clarity.")]
+    pub fn commit_u64(&mut self, label: &'static [u8], x: u64) {
+        self.append_u64(label, x);
     }
 
     /// Fill the supplied buffer with the verifier's challenge bytes.
