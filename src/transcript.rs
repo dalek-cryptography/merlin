@@ -22,8 +22,10 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 
 /// A transcript of a public-coin argument.
 ///
-/// The prover's messages are added to the transcript using `commit_bytes`,
-/// and the verifier's challenges can be computed using `challenge_bytes`.
+/// The prover's messages are added to the transcript using
+/// [`append_message`](Transcript::append_message), and the verifier's
+/// challenges can be computed using
+/// [`challenge_bytes`](Transcript::challenge_bytes).
 ///
 /// # Creating and using a Merlin transcript
 ///
@@ -88,11 +90,11 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 ///
 /// impl TranscriptProtocol for Transcript {
 ///     fn domain_sep(&mut self) {
-///         self.commit_bytes(b"dom-sep", b"TranscriptProtocol Example");
+///         self.append_message(b"dom-sep", b"TranscriptProtocol Example");
 ///     }
 ///
 ///     fn commit_point(&mut self, label: &'static [u8], point: &CompressedRistretto) {
-///         self.commit_bytes(label, point.as_bytes());
+///         self.append_message(label, point.as_bytes());
 ///     }
 ///
 ///     fn challenge_scalar(&mut self, label: &'static [u8]) -> Scalar {
@@ -116,7 +118,7 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 /// Now, the implementation of the protocol can use the `domain_sep`
 /// to add domain separation to an existing `&mut Transcript`, and
 /// then call the `commit_point` and `challenge_scalar` methods,
-/// rather than calling [`commit_bytes`][Transcript::commit_bytes] and
+/// rather than calling [`append_message`][Transcript::append_message] and
 /// [`challenge_bytes`][Transcript::challenge_bytes] directly.
 ///
 /// However, because the protocol-specific behaviour is defined in a
@@ -162,7 +164,7 @@ impl Transcript {
         let mut transcript = Transcript {
             strobe: Strobe128::new(MERLIN_PROTOCOL_LABEL),
         };
-        transcript.commit_bytes(b"dom-sep", label);
+        transcript.append_message(b"dom-sep", label);
 
         transcript
     }
@@ -179,7 +181,7 @@ impl Transcript {
     /// meta-AD( label || LE32(message.len()) );
     /// AD( message );
     /// ```
-    pub fn commit_bytes(&mut self, label: &'static [u8], message: &[u8]) {
+    pub fn append_message(&mut self, label: &'static [u8], message: &[u8]) {
         let data_len = encode_usize_as_u32(message.len());
         self.strobe.meta_ad(label, false);
         self.strobe.meta_ad(&data_len, true);
@@ -217,16 +219,26 @@ impl Transcript {
         }
     }
 
-    /// Convenience method for committing a `u64` to the transcript.
+    /// Deprecated.  This function was renamed to
+    /// [`append_message`](Transcript::append_message).
+    ///
+    /// This is intended to avoid any possible confusion between the
+    /// transcript-level messages and protocol-level commitments.
+    #[deprecated(since = "1.1.0", note = "renamed to append_message for clarity.")]
+    pub fn commit_bytes(&mut self, label: &'static [u8], message: &[u8]) {
+        self.append_message(label, message);
+    }
+
+    /// Convenience method for appending a `u64` to the transcript.
     ///
     /// The `label` parameter is metadata about the message, and is
     /// also committed to the transcript.
     ///
     /// # Implementation
     ///
-    /// Calls `commit_bytes` with the little-endian encoding of `x`.
+    /// Calls `append_message` with the little-endian encoding of `x`.
     pub fn commit_u64(&mut self, label: &'static [u8], x: u64) {
-        self.commit_bytes(label, &encode_u64(x));
+        self.append_message(label, &encode_u64(x));
     }
 
     /// Fill the supplied buffer with the verifier's challenge bytes.
@@ -309,7 +321,7 @@ impl Transcript {
 /// # let public_data = b"public data";
 /// # let witness_data = b"witness data";
 /// # let more_witness_data = b"witness data";
-/// transcript.commit_bytes(b"public", public_data);
+/// transcript.append_message(b"public", public_data);
 ///
 /// let mut rng = transcript
 ///     .build_rng()
@@ -563,13 +575,13 @@ mod tests {
             let mut tt = TestTranscript {
                 state: Strobe::new(MERLIN_PROTOCOL_LABEL.to_vec(), SecParam::B128),
             };
-            tt.commit_bytes(b"dom-sep", label);
+            tt.append_message(b"dom-sep", label);
 
             tt
         }
 
         /// Strobe op: meta-AD(label || len(message)); AD(message)
-        pub fn commit_bytes(&mut self, label: &[u8], message: &[u8]) {
+        pub fn append_message(&mut self, label: &[u8], message: &[u8]) {
             // metadata = label || len(message);
             let metaflags: OpFlags = OpFlags::A | OpFlags::M;
             let mut metadata: Vec<u8> = Vec::with_capacity(label.len() + 4);
@@ -601,8 +613,8 @@ mod tests {
         let mut real_transcript = Transcript::new(b"test protocol");
         let mut test_transcript = TestTranscript::new(b"test protocol");
 
-        real_transcript.commit_bytes(b"some label", b"some data");
-        test_transcript.commit_bytes(b"some label", b"some data");
+        real_transcript.append_message(b"some label", b"some data");
+        test_transcript.append_message(b"some label", b"some data");
 
         let mut real_challenge = [0u8; 32];
         let mut test_challenge = [0u8; 32];
@@ -623,8 +635,8 @@ mod tests {
 
         let data = vec![99; 1024];
 
-        real_transcript.commit_bytes(b"step1", b"some data");
-        test_transcript.commit_bytes(b"step1", b"some data");
+        real_transcript.append_message(b"step1", b"some data");
+        test_transcript.append_message(b"step1", b"some data");
 
         let mut real_challenge = [0u8; 32];
         let mut test_challenge = [0u8; 32];
@@ -635,11 +647,11 @@ mod tests {
 
             assert_eq!(real_challenge, test_challenge);
 
-            real_transcript.commit_bytes(b"bigdata", &data);
-            test_transcript.commit_bytes(b"bigdata", &data);
+            real_transcript.append_message(b"bigdata", &data);
+            test_transcript.append_message(b"bigdata", &data);
 
-            real_transcript.commit_bytes(b"challengedata", &real_challenge);
-            test_transcript.commit_bytes(b"challengedata", &test_challenge);
+            real_transcript.append_message(b"challengedata", &real_challenge);
+            test_transcript.append_message(b"challengedata", &test_challenge);
         }
     }
 
@@ -665,10 +677,10 @@ mod tests {
         let mut t3 = Transcript::new(protocol_label);
         let mut t4 = Transcript::new(protocol_label);
 
-        t1.commit_bytes(b"com", commitment1);
-        t2.commit_bytes(b"com", commitment2);
-        t3.commit_bytes(b"com", commitment2);
-        t4.commit_bytes(b"com", commitment2);
+        t1.append_message(b"com", commitment1);
+        t2.append_message(b"com", commitment2);
+        t3.append_message(b"com", commitment2);
+        t4.append_message(b"com", commitment2);
 
         let mut r1 = t1
             .build_rng()
