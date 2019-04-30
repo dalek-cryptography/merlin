@@ -22,8 +22,10 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 
 /// A transcript of a public-coin argument.
 ///
-/// The prover's messages are added to the transcript using `commit_bytes`,
-/// and the verifier's challenges can be computed using `challenge_bytes`.
+/// The prover's messages are added to the transcript using
+/// [`append_message`](Transcript::append_message), and the verifier's
+/// challenges can be computed using
+/// [`challenge_bytes`](Transcript::challenge_bytes).
 ///
 /// # Creating and using a Merlin transcript
 ///
@@ -53,9 +55,9 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 /// 2.  It ensures that protocols are sequentially composable, by
 /// running them on a common transcript.  (Since transcript instances
 /// are domain-separated, it should not be possible to extract a
-/// sub-protocol's challenges and commitments as a standalone proof).
+/// sub-protocol's messages and challenges as a standalone proof).
 ///
-/// 3.  It allows API clients to commit contextual data to the
+/// 3.  It allows API clients to append contextual data to the
 /// proof transcript prior to running the protocol, allowing them to
 /// bind proof statements to arbitrary application data.
 ///
@@ -67,8 +69,8 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 /// way to bridge this abstraction gap is to define a
 /// protocol-specific extension trait.
 ///
-/// For instance, consider a discrete-log based protocol which commits
-/// to Ristretto points and requires challenge scalars for the
+/// For instance, consider a discrete-log based protocol which sends
+/// Ristretto points as messages and requires challenge scalars for the
 /// Ristretto group.  This protocol can define a protocol-specific
 /// extension trait in its crate as follows:
 /// ```
@@ -82,17 +84,17 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 ///
 /// trait TranscriptProtocol {
 ///     fn domain_sep(&mut self);
-///     fn commit_point(&mut self, label: &'static [u8], point: &CompressedRistretto);
+///     fn append_point(&mut self, label: &'static [u8], point: &CompressedRistretto);
 ///     fn challenge_scalar(&mut self, label: &'static [u8]) -> Scalar;
 /// }
 ///
 /// impl TranscriptProtocol for Transcript {
 ///     fn domain_sep(&mut self) {
-///         self.commit_bytes(b"dom-sep", b"TranscriptProtocol Example");
+///         self.append_message(b"dom-sep", b"TranscriptProtocol Example");
 ///     }
 ///
-///     fn commit_point(&mut self, label: &'static [u8], point: &CompressedRistretto) {
-///         self.commit_bytes(label, point.as_bytes());
+///     fn append_point(&mut self, label: &'static [u8], point: &CompressedRistretto) {
+///         self.append_message(label, point.as_bytes());
 ///     }
 ///
 ///     fn challenge_scalar(&mut self, label: &'static [u8]) -> Scalar {
@@ -106,8 +108,8 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 ///     // Since the TranscriptProtocol trait is in scope, the extension
 ///     // methods are available on the `transcript` object:
 ///     transcript.domain_sep();
-///     transcript.commit_point(b"A", &A.compress());
-///     transcript.commit_point(b"B", &B.compress());
+///     transcript.append_point(b"A", &A.compress());
+///     transcript.append_point(b"B", &B.compress());
 ///     let c = transcript.challenge_scalar(b"c");
 ///     // ...
 /// }
@@ -115,8 +117,8 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 /// ```
 /// Now, the implementation of the protocol can use the `domain_sep`
 /// to add domain separation to an existing `&mut Transcript`, and
-/// then call the `commit_point` and `challenge_scalar` methods,
-/// rather than calling [`commit_bytes`][Transcript::commit_bytes] and
+/// then call the `append_point` and `challenge_scalar` methods,
+/// rather than calling [`append_message`][Transcript::append_message] and
 /// [`challenge_bytes`][Transcript::challenge_bytes] directly.
 ///
 /// However, because the protocol-specific behaviour is defined in a
@@ -140,7 +142,7 @@ impl Transcript {
     /// # Implementation
     ///
     /// Initializes a STROBE-128 context with a Merlin
-    /// domain-separator label, then commits the user-supplied label
+    /// domain-separator label, then appends the user-supplied label
     /// using the STROBE operations
     /// ```text,no_run
     /// meta-AD( b"dom-sep" || LE32(label.len()) );
@@ -162,15 +164,15 @@ impl Transcript {
         let mut transcript = Transcript {
             strobe: Strobe128::new(MERLIN_PROTOCOL_LABEL),
         };
-        transcript.commit_bytes(b"dom-sep", label);
+        transcript.append_message(b"dom-sep", label);
 
         transcript
     }
 
-    /// Commit a prover's `message` to the transcript.
+    /// Append a prover's `message` to the transcript.
     ///
     /// The `label` parameter is metadata about the message, and is
-    /// also committed to the transcript.
+    /// also appended to the transcript.
     ///
     /// # Implementation
     ///
@@ -179,7 +181,7 @@ impl Transcript {
     /// meta-AD( label || LE32(message.len()) );
     /// AD( message );
     /// ```
-    pub fn commit_bytes(&mut self, label: &'static [u8], message: &[u8]) {
+    pub fn append_message(&mut self, label: &'static [u8], message: &[u8]) {
         let data_len = encode_usize_as_u32(message.len());
         self.strobe.meta_ad(label, false);
         self.strobe.meta_ad(&data_len, true);
@@ -217,22 +219,42 @@ impl Transcript {
         }
     }
 
-    /// Convenience method for committing a `u64` to the transcript.
+    /// Deprecated.  This function was renamed to
+    /// [`append_message`](Transcript::append_message).
+    ///
+    /// This is intended to avoid any possible confusion between the
+    /// transcript-level messages and protocol-level commitments.
+    #[deprecated(since = "1.1.0", note = "renamed to append_message for clarity.")]
+    pub fn commit_bytes(&mut self, label: &'static [u8], message: &[u8]) {
+        self.append_message(label, message);
+    }
+
+    /// Convenience method for appending a `u64` to the transcript.
     ///
     /// The `label` parameter is metadata about the message, and is
-    /// also committed to the transcript.
+    /// also appended to the transcript.
     ///
     /// # Implementation
     ///
-    /// Calls `commit_bytes` with the little-endian encoding of `x`.
+    /// Calls `append_message` with the little-endian encoding of `x`.
+    pub fn append_u64(&mut self, label: &'static [u8], x: u64) {
+        self.append_message(label, &encode_u64(x));
+    }
+
+    /// Deprecated.  This function was renamed to
+    /// [`append_u64`](Transcript::append_u64).
+    ///
+    /// This is intended to avoid any possible confusion between the
+    /// transcript-level messages and protocol-level commitments.
+    #[deprecated(since = "1.1.0", note = "renamed to append_u64 for clarity.")]
     pub fn commit_u64(&mut self, label: &'static [u8], x: u64) {
-        self.commit_bytes(label, &encode_u64(x));
+        self.append_u64(label, x);
     }
 
     /// Fill the supplied buffer with the verifier's challenge bytes.
     ///
     /// The `label` parameter is metadata about the challenge, and is
-    /// also committed to the transcript.
+    /// also appended to the transcript.
     ///
     /// # Implementation
     ///
@@ -282,17 +304,17 @@ impl Transcript {
 /// Constructs a [`TranscriptRng`] by rekeying the [`Transcript`] with
 /// prover secrets and an external RNG.
 ///
-/// The prover commits witness data to the
-/// [`TranscriptRngBuilder`] before using an external RNG to
-/// finalize to a [`TranscriptRng`].  The resulting [`TranscriptRng`]
-/// will be a PRF of all of the entire public transcript, the prover's
-/// secret witness data, and randomness from the external RNG.
+/// The prover uses a [`TranscriptRngBuilder`] to rekey with its
+/// witness data, before using an external RNG to finalize to a
+/// [`TranscriptRng`].  The resulting [`TranscriptRng`] will be a PRF
+/// of all of the entire public transcript, the prover's secret
+/// witness data, and randomness from the external RNG.
 ///
 /// # Usage
 ///
 /// To construct a [`TranscriptRng`], a prover calls
 /// [`Transcript::build_rng()`] to clone the transcript state, then
-/// uses [`commit_witness_bytes()`][commit_witness_bytes] to rekey the
+/// uses [`rekey_with_witness_bytes()`][rekey_with_witness_bytes] to rekey the
 /// transcript with the prover's secrets, before finally calling
 /// [`finalize()`][finalize].  This rekeys the transcript with the
 /// output of an external [`rand_core::RngCore`] instance and returns
@@ -309,12 +331,12 @@ impl Transcript {
 /// # let public_data = b"public data";
 /// # let witness_data = b"witness data";
 /// # let more_witness_data = b"witness data";
-/// transcript.commit_bytes(b"public", public_data);
+/// transcript.append_message(b"public", public_data);
 ///
 /// let mut rng = transcript
 ///     .build_rng()
-///     .commit_witness_bytes(b"witness1", witness_data)
-///     .commit_witness_bytes(b"witness2", more_witness_data)
+///     .rekey_with_witness_bytes(b"witness1", witness_data)
+///     .rekey_with_witness_bytes(b"witness2", more_witness_data)
 ///     .finalize(&mut rand::thread_rng());
 /// # }
 /// ```
@@ -340,11 +362,11 @@ impl Transcript {
 ///
 /// Like the [`Transcript`], the [`TranscriptRngBuilder`] provides
 /// a minimal, byte-oriented API, and like the [`Transcript`], this
-/// API can be extended to allow committing protocol-specific types
+/// API can be extended to allow rekeying with protocol-specific types
 /// using an extension trait.  See the [`Transcript`] documentation
 /// for more details.
 ///
-/// [commit_witness_bytes]: TranscriptRngBuilder::commit_witness_bytes
+/// [rekey_with_witness_bytes]: TranscriptRngBuilder::rekey_with_witness_bytes
 /// [finalize]: TranscriptRngBuilder::finalize
 pub struct TranscriptRngBuilder {
     strobe: Strobe128,
@@ -353,8 +375,7 @@ pub struct TranscriptRngBuilder {
 impl TranscriptRngBuilder {
     /// Rekey the transcript using the provided witness data.
     ///
-    /// The `label` parameter is metadata about `witness`, and is
-    /// also committed to the transcript.
+    /// The `label` parameter is metadata about `witness`.
     ///
     /// # Implementation
     ///
@@ -363,7 +384,7 @@ impl TranscriptRngBuilder {
     /// meta-AD( label || LE32(witness.len()) );
     /// KEY( witness );
     /// ```
-    pub fn commit_witness_bytes(
+    pub fn rekey_with_witness_bytes(
         mut self,
         label: &'static [u8],
         witness: &[u8],
@@ -374,6 +395,23 @@ impl TranscriptRngBuilder {
         self.strobe.key(witness, false);
 
         self
+    }
+
+    /// Deprecated.  This function was renamed to
+    /// [`rekey_with_witness_bytes`](Transcript::rekey_with_witness_bytes).
+    ///
+    /// This is intended to avoid any possible confusion between the
+    /// transcript-level messages and protocol-level commitments.
+    #[deprecated(
+        since = "1.1.0",
+        note = "renamed to rekey_with_witness_bytes for clarity."
+    )]
+    pub fn commit_witness_bytes(
+        self,
+        label: &'static [u8],
+        witness: &[u8],
+    ) -> TranscriptRngBuilder {
+        self.rekey_with_witness_bytes(label, witness)
     }
 
     /// Use the supplied external `rng` to rekey the transcript, so
@@ -563,13 +601,13 @@ mod tests {
             let mut tt = TestTranscript {
                 state: Strobe::new(MERLIN_PROTOCOL_LABEL.to_vec(), SecParam::B128),
             };
-            tt.commit_bytes(b"dom-sep", label);
+            tt.append_message(b"dom-sep", label);
 
             tt
         }
 
         /// Strobe op: meta-AD(label || len(message)); AD(message)
-        pub fn commit_bytes(&mut self, label: &[u8], message: &[u8]) {
+        pub fn append_message(&mut self, label: &[u8], message: &[u8]) {
             // metadata = label || len(message);
             let metaflags: OpFlags = OpFlags::A | OpFlags::M;
             let mut metadata: Vec<u8> = Vec::with_capacity(label.len() + 4);
@@ -601,8 +639,8 @@ mod tests {
         let mut real_transcript = Transcript::new(b"test protocol");
         let mut test_transcript = TestTranscript::new(b"test protocol");
 
-        real_transcript.commit_bytes(b"some label", b"some data");
-        test_transcript.commit_bytes(b"some label", b"some data");
+        real_transcript.append_message(b"some label", b"some data");
+        test_transcript.append_message(b"some label", b"some data");
 
         let mut real_challenge = [0u8; 32];
         let mut test_challenge = [0u8; 32];
@@ -623,8 +661,8 @@ mod tests {
 
         let data = vec![99; 1024];
 
-        real_transcript.commit_bytes(b"step1", b"some data");
-        test_transcript.commit_bytes(b"step1", b"some data");
+        real_transcript.append_message(b"step1", b"some data");
+        test_transcript.append_message(b"step1", b"some data");
 
         let mut real_challenge = [0u8; 32];
         let mut test_challenge = [0u8; 32];
@@ -635,11 +673,11 @@ mod tests {
 
             assert_eq!(real_challenge, test_challenge);
 
-            real_transcript.commit_bytes(b"bigdata", &data);
-            test_transcript.commit_bytes(b"bigdata", &data);
+            real_transcript.append_message(b"bigdata", &data);
+            test_transcript.append_message(b"bigdata", &data);
 
-            real_transcript.commit_bytes(b"challengedata", &real_challenge);
-            test_transcript.commit_bytes(b"challengedata", &test_challenge);
+            real_transcript.append_message(b"challengedata", &real_challenge);
+            test_transcript.append_message(b"challengedata", &test_challenge);
         }
     }
 
@@ -665,29 +703,29 @@ mod tests {
         let mut t3 = Transcript::new(protocol_label);
         let mut t4 = Transcript::new(protocol_label);
 
-        t1.commit_bytes(b"com", commitment1);
-        t2.commit_bytes(b"com", commitment2);
-        t3.commit_bytes(b"com", commitment2);
-        t4.commit_bytes(b"com", commitment2);
+        t1.append_message(b"com", commitment1);
+        t2.append_message(b"com", commitment2);
+        t3.append_message(b"com", commitment2);
+        t4.append_message(b"com", commitment2);
 
         let mut r1 = t1
             .build_rng()
-            .commit_witness_bytes(b"witness", witness1)
+            .rekey_with_witness_bytes(b"witness", witness1)
             .finalize(&mut ChaChaRng::from_seed([0; 32]));
 
         let mut r2 = t2
             .build_rng()
-            .commit_witness_bytes(b"witness", witness1)
+            .rekey_with_witness_bytes(b"witness", witness1)
             .finalize(&mut ChaChaRng::from_seed([0; 32]));
 
         let mut r3 = t3
             .build_rng()
-            .commit_witness_bytes(b"witness", witness2)
+            .rekey_with_witness_bytes(b"witness", witness2)
             .finalize(&mut ChaChaRng::from_seed([0; 32]));
 
         let mut r4 = t4
             .build_rng()
-            .commit_witness_bytes(b"witness", witness2)
+            .rekey_with_witness_bytes(b"witness", witness2)
             .finalize(&mut ChaChaRng::from_seed([0; 32]));
 
         let s1 = Scalar::random(&mut r1);
