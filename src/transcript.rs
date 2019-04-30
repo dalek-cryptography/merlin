@@ -55,9 +55,9 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 /// 2.  It ensures that protocols are sequentially composable, by
 /// running them on a common transcript.  (Since transcript instances
 /// are domain-separated, it should not be possible to extract a
-/// sub-protocol's challenges and commitments as a standalone proof).
+/// sub-protocol's messages and challenges as a standalone proof).
 ///
-/// 3.  It allows API clients to commit contextual data to the
+/// 3.  It allows API clients to append contextual data to the
 /// proof transcript prior to running the protocol, allowing them to
 /// bind proof statements to arbitrary application data.
 ///
@@ -69,8 +69,8 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 /// way to bridge this abstraction gap is to define a
 /// protocol-specific extension trait.
 ///
-/// For instance, consider a discrete-log based protocol which commits
-/// to Ristretto points and requires challenge scalars for the
+/// For instance, consider a discrete-log based protocol which sends
+/// Ristretto points as messages and requires challenge scalars for the
 /// Ristretto group.  This protocol can define a protocol-specific
 /// extension trait in its crate as follows:
 /// ```
@@ -84,7 +84,7 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 ///
 /// trait TranscriptProtocol {
 ///     fn domain_sep(&mut self);
-///     fn commit_point(&mut self, label: &'static [u8], point: &CompressedRistretto);
+///     fn append_point(&mut self, label: &'static [u8], point: &CompressedRistretto);
 ///     fn challenge_scalar(&mut self, label: &'static [u8]) -> Scalar;
 /// }
 ///
@@ -93,7 +93,7 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 ///         self.append_message(b"dom-sep", b"TranscriptProtocol Example");
 ///     }
 ///
-///     fn commit_point(&mut self, label: &'static [u8], point: &CompressedRistretto) {
+///     fn append_point(&mut self, label: &'static [u8], point: &CompressedRistretto) {
 ///         self.append_message(label, point.as_bytes());
 ///     }
 ///
@@ -108,8 +108,8 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 ///     // Since the TranscriptProtocol trait is in scope, the extension
 ///     // methods are available on the `transcript` object:
 ///     transcript.domain_sep();
-///     transcript.commit_point(b"A", &A.compress());
-///     transcript.commit_point(b"B", &B.compress());
+///     transcript.append_point(b"A", &A.compress());
+///     transcript.append_point(b"B", &B.compress());
 ///     let c = transcript.challenge_scalar(b"c");
 ///     // ...
 /// }
@@ -117,7 +117,7 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 /// ```
 /// Now, the implementation of the protocol can use the `domain_sep`
 /// to add domain separation to an existing `&mut Transcript`, and
-/// then call the `commit_point` and `challenge_scalar` methods,
+/// then call the `append_point` and `challenge_scalar` methods,
 /// rather than calling [`append_message`][Transcript::append_message] and
 /// [`challenge_bytes`][Transcript::challenge_bytes] directly.
 ///
@@ -142,7 +142,7 @@ impl Transcript {
     /// # Implementation
     ///
     /// Initializes a STROBE-128 context with a Merlin
-    /// domain-separator label, then commits the user-supplied label
+    /// domain-separator label, then appends the user-supplied label
     /// using the STROBE operations
     /// ```text,no_run
     /// meta-AD( b"dom-sep" || LE32(label.len()) );
@@ -169,10 +169,10 @@ impl Transcript {
         transcript
     }
 
-    /// Commit a prover's `message` to the transcript.
+    /// Append a prover's `message` to the transcript.
     ///
     /// The `label` parameter is metadata about the message, and is
-    /// also committed to the transcript.
+    /// also appended to the transcript.
     ///
     /// # Implementation
     ///
@@ -232,7 +232,7 @@ impl Transcript {
     /// Convenience method for appending a `u64` to the transcript.
     ///
     /// The `label` parameter is metadata about the message, and is
-    /// also committed to the transcript.
+    /// also appended to the transcript.
     ///
     /// # Implementation
     ///
@@ -254,7 +254,7 @@ impl Transcript {
     /// Fill the supplied buffer with the verifier's challenge bytes.
     ///
     /// The `label` parameter is metadata about the challenge, and is
-    /// also committed to the transcript.
+    /// also appended to the transcript.
     ///
     /// # Implementation
     ///
