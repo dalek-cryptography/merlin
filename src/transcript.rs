@@ -304,17 +304,17 @@ impl Transcript {
 /// Constructs a [`TranscriptRng`] by rekeying the [`Transcript`] with
 /// prover secrets and an external RNG.
 ///
-/// The prover commits witness data to the
-/// [`TranscriptRngBuilder`] before using an external RNG to
-/// finalize to a [`TranscriptRng`].  The resulting [`TranscriptRng`]
-/// will be a PRF of all of the entire public transcript, the prover's
-/// secret witness data, and randomness from the external RNG.
+/// The prover uses a [`TranscriptRngBuilder`] to rekey with its
+/// witness data, before using an external RNG to finalize to a
+/// [`TranscriptRng`].  The resulting [`TranscriptRng`] will be a PRF
+/// of all of the entire public transcript, the prover's secret
+/// witness data, and randomness from the external RNG.
 ///
 /// # Usage
 ///
 /// To construct a [`TranscriptRng`], a prover calls
 /// [`Transcript::build_rng()`] to clone the transcript state, then
-/// uses [`commit_witness_bytes()`][commit_witness_bytes] to rekey the
+/// uses [`rekey_with_witness_bytes()`][rekey_with_witness_bytes] to rekey the
 /// transcript with the prover's secrets, before finally calling
 /// [`finalize()`][finalize].  This rekeys the transcript with the
 /// output of an external [`rand_core::RngCore`] instance and returns
@@ -335,8 +335,8 @@ impl Transcript {
 ///
 /// let mut rng = transcript
 ///     .build_rng()
-///     .commit_witness_bytes(b"witness1", witness_data)
-///     .commit_witness_bytes(b"witness2", more_witness_data)
+///     .rekey_with_witness_bytes(b"witness1", witness_data)
+///     .rekey_with_witness_bytes(b"witness2", more_witness_data)
 ///     .finalize(&mut rand::thread_rng());
 /// # }
 /// ```
@@ -362,11 +362,11 @@ impl Transcript {
 ///
 /// Like the [`Transcript`], the [`TranscriptRngBuilder`] provides
 /// a minimal, byte-oriented API, and like the [`Transcript`], this
-/// API can be extended to allow committing protocol-specific types
+/// API can be extended to allow rekeying with protocol-specific types
 /// using an extension trait.  See the [`Transcript`] documentation
 /// for more details.
 ///
-/// [commit_witness_bytes]: TranscriptRngBuilder::commit_witness_bytes
+/// [rekey_with_witness_bytes]: TranscriptRngBuilder::rekey_with_witness_bytes
 /// [finalize]: TranscriptRngBuilder::finalize
 pub struct TranscriptRngBuilder {
     strobe: Strobe128,
@@ -375,8 +375,7 @@ pub struct TranscriptRngBuilder {
 impl TranscriptRngBuilder {
     /// Rekey the transcript using the provided witness data.
     ///
-    /// The `label` parameter is metadata about `witness`, and is
-    /// also committed to the transcript.
+    /// The `label` parameter is metadata about `witness`.
     ///
     /// # Implementation
     ///
@@ -385,7 +384,7 @@ impl TranscriptRngBuilder {
     /// meta-AD( label || LE32(witness.len()) );
     /// KEY( witness );
     /// ```
-    pub fn commit_witness_bytes(
+    pub fn rekey_with_witness_bytes(
         mut self,
         label: &'static [u8],
         witness: &[u8],
@@ -396,6 +395,23 @@ impl TranscriptRngBuilder {
         self.strobe.key(witness, false);
 
         self
+    }
+
+    /// Deprecated.  This function was renamed to
+    /// [`rekey_with_witness_bytes`](Transcript::rekey_with_witness_bytes).
+    ///
+    /// This is intended to avoid any possible confusion between the
+    /// transcript-level messages and protocol-level commitments.
+    #[deprecated(
+        since = "1.1.0",
+        note = "renamed to rekey_with_witness_bytes for clarity."
+    )]
+    pub fn commit_witness_bytes(
+        self,
+        label: &'static [u8],
+        witness: &[u8],
+    ) -> TranscriptRngBuilder {
+        self.rekey_with_witness_bytes(label, witness)
     }
 
     /// Use the supplied external `rng` to rekey the transcript, so
@@ -694,22 +710,22 @@ mod tests {
 
         let mut r1 = t1
             .build_rng()
-            .commit_witness_bytes(b"witness", witness1)
+            .rekey_with_witness_bytes(b"witness", witness1)
             .finalize(&mut ChaChaRng::from_seed([0; 32]));
 
         let mut r2 = t2
             .build_rng()
-            .commit_witness_bytes(b"witness", witness1)
+            .rekey_with_witness_bytes(b"witness", witness1)
             .finalize(&mut ChaChaRng::from_seed([0; 32]));
 
         let mut r3 = t3
             .build_rng()
-            .commit_witness_bytes(b"witness", witness2)
+            .rekey_with_witness_bytes(b"witness", witness2)
             .finalize(&mut ChaChaRng::from_seed([0; 32]));
 
         let mut r4 = t4
             .build_rng()
-            .commit_witness_bytes(b"witness", witness2)
+            .rekey_with_witness_bytes(b"witness", witness2)
             .finalize(&mut ChaChaRng::from_seed([0; 32]));
 
         let s1 = Scalar::random(&mut r1);
