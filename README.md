@@ -1,33 +1,38 @@
 <img
  width="33%"
  align="right"
- src="https://upload.wikimedia.org/wikipedia/commons/7/79/Arthur-Pyle_The_Enchanter_Merlin.JPG"/>
+ src="https://merlin.cool/merlin.png"/>
  
 ## Merlin: composable proof transcripts for public-coin arguments of knowledge
 
-Merlin is a [STROBE][strobe]-based construction of a proof transcript which
-applies the Fiat-Shamir transform to an interactive public-coin
-argument of knowledge.  This allows implementing protocols as if they
-were interactive, committing messages to the proof transcript and
-obtaining challenges bound to all previous messages.
+[Merlin][merlin_cool] is a [STROBE][strobe]-based transcript
+construction for zero-knowledge proofs. It automates the Fiat-Shamir
+transform, so that by using Merlin, non-interactive protocols can be
+implemented as if they were interactive.
 
-In comparison to using a hash function directly, this design provides
+This is significantly easier and less error-prone than performing the
+transformation by hand, and in addition, it also provides natural
 support for:
 
-* multi-round protocols with alternating commit and
-challenge phases;
+* multi-round protocols with alternating commit and challenge phases;
 
-* natural domain separation, ensuring challenges are
-bound to the statements to be proved;
+* natural domain separation, ensuring challenges are bound to the
+  statements to be proved;
 
-* automatic message framing, preventing ambiguous encoding of commitment data;
+* automatic message framing, preventing ambiguous encoding of
+  commitment data;
 
-* and protocol composition, by using a common transcript for multiple protocols.
+* and protocol composition, by using a common transcript for multiple
+  protocols.
 
-In addition, Merlin provides a transcript-based `rand_core::RngCore` instance
-for use by the prover.  This provides synthetic randomness derived from
-the entire public transcript, as well as the prover's witness data,
-and an auxiliary input from an external RNG.
+Finally, Merlin also provides a transcript-based random number
+generator as defense-in-depth against bad-entropy attacks (such as
+nonce reuse, or bias over many proofs). This RNG provides synthetic
+randomness derived from the entire public transcript, as well as the
+prover's witness data, and an auxiliary input from an external RNG.
+
+More details on the design of Merlin and how to use it for proof
+systems can be found on the [Merlin website][merlin_cool].
 
 ## Features
 
@@ -45,14 +50,23 @@ be [found here][bp_transcript].
 ## About
 
 Merlin is authored by Henry de Valence, with design input from Isis
-Lovecruft and Oleg Andreev.  Thanks also to Trevor Perrin and Mike
+Lovecruft and Oleg Andreev.  The construction grew out of work with Oleg
+Andreev and Cathie Yun on a [Bulletproofs implementation][bp].
+Thanks also to Trevor Perrin and Mike
 Hamburg for helpful discussions.  Merlin is named in reference to
 [Arthur-Merlin protocols][am_wiki] which introduced the notion of
 public coin arguments.
 
-This project is licensed under the MIT license; see `LICENSE.txt` for
-details.
+The header image was created by Oleg Andreev as a composite of Arthur Pyle's
+[The Enchanter Merlin][merlin_pyle] and the Keccak Team's [θ-step
+diagram][keccak_theta].
 
+This project is licensed under the MIT license.
+
+[merlin_cool]: https://merlin.cool
+[bp]: https://doc.dalek.rs/bulletproofs/
 [strobe]: https://strobe.sourceforge.io/
 [am_wiki]: https://en.wikipedia.org/wiki/Arthur%E2%80%93Merlin_protocol
+[merlin_pyle]: https://commons.wikimedia.org/wiki/File:Arthur-Pyle_The_Enchanter_Merlin.JPG
+[keccak_theta]: https://keccak.team/figures.html
 [bp_transcript]: https://gist.github.com/hdevalence/9db3997cc275597eeae1ec2461b8e2a1
