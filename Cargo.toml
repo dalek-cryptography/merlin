@@ -30,7 +30,7 @@ rand_chacha = "0.1"
 rand = "0.6"
 
 [features]
-default = ["std"]
+default = ["alloc"]
 nightly = ["clear_on_drop/nightly"]
 std = ["rand_core/std", "byteorder/std"]
 alloc = ["rand_core/alloc"]
