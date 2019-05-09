@@ -1,9 +1,6 @@
 //! Minimal implementation of (parts of) Strobe.
 
 use keccak;
-#[cfg(feature = "std")]
-use std::ops::{Deref, DerefMut};
-#[cfg(feature = "alloc")]
 use core::ops::{Deref, DerefMut};
 
 /// Strobe R value; security level 128 is hardcoded
