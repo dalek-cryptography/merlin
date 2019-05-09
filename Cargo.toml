@@ -22,7 +22,6 @@ keccak = { version = "0.1.0", default-features = false }
 byteorder = { version = "1.2.4", default-features = false }
 clear_on_drop = { version = "0.2.3", default-features = false }
 rand_core = { version = "0.3", default-features = false }
-hex = {version = "0.3", default-features = false, optional = true }
 
 [dev-dependencies]
 strobe-rs = "0.3"
@@ -33,6 +32,5 @@ rand = "0.6"
 [features]
 default = ["std"]
 nightly = ["clear_on_drop/nightly"]
-debug-transcript = ["hex"]
 std = ["rand_core/std", "byteorder/std"]
 alloc = ["rand_core/alloc"]
