@@ -34,5 +34,5 @@ rand = "0.6"
 default = ["std"]
 nightly = ["clear_on_drop/nightly"]
 debug-transcript = ["hex"]
-std = ["rand_core/std"]
+std = ["rand_core/std", "byteorder/std"]
 alloc = ["rand_core/alloc"]
