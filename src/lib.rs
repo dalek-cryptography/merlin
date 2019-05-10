@@ -18,7 +18,6 @@ please file an issue!
 
 extern crate byteorder;
 extern crate clear_on_drop;
-extern crate core;
 extern crate keccak;
 extern crate rand_core;
 
