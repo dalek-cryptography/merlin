@@ -1,3 +1,5 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(feature = "alloc", feature(alloc))]
 #![cfg_attr(feature = "nightly", feature(external_doc))]
 #![cfg_attr(feature = "nightly", doc(include = "../README.md"))]
 #![doc(html_logo_url = "https://doc.dalek.rs/assets/dalek-logo-clear.png")]
