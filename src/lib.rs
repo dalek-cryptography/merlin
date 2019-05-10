@@ -21,6 +21,9 @@ extern crate clear_on_drop;
 extern crate keccak;
 extern crate rand_core;
 
+#[cfg(feature = "std")]
+extern crate core;
+
 #[cfg(test)]
 extern crate curve25519_dalek;
 #[cfg(feature = "hex")]
