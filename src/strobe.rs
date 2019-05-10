@@ -1,5 +1,7 @@
 //! Minimal implementation of (parts of) Strobe.
 
+extern crate core;
+
 use keccak;
 use core::ops::{Deref, DerefMut};
 
