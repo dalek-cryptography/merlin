@@ -149,16 +149,16 @@ impl Transcript {
     pub fn new(label: &'static [u8]) -> Transcript {
         use constants::MERLIN_PROTOCOL_LABEL;
 
-        #[cfg(feature = "debug-transcript")]	
-        {	
-            use std::str::from_utf8;	
-            println!(	
-                "Initialize STROBE-128({})\t# b\"{}\"",	
-                hex::encode(MERLIN_PROTOCOL_LABEL),	
-                from_utf8(MERLIN_PROTOCOL_LABEL).unwrap(),	
-            );	
-        }	
-        
+        #[cfg(feature = "debug-transcript")]
+        {
+            use std::str::from_utf8;
+            println!(
+                "Initialize STROBE-128({})\t# b\"{}\"",
+                hex::encode(MERLIN_PROTOCOL_LABEL),
+                from_utf8(MERLIN_PROTOCOL_LABEL).unwrap(),
+            );
+        }
+
         let mut transcript = Transcript {
             strobe: Strobe128::new(MERLIN_PROTOCOL_LABEL),
         };
@@ -185,35 +185,35 @@ impl Transcript {
         self.strobe.meta_ad(&data_len, true);
         self.strobe.ad(message, false);
 
-        #[cfg(feature = "debug-transcript")]	
-        {	
-            use std::str::from_utf8;	
+        #[cfg(feature = "debug-transcript")]
+        {
+            use std::str::from_utf8;
 
-             match from_utf8(label) {	
-                Ok(label_str) => {	
-                    println!(	
-                        "meta-AD : {} || LE32({})\t# b\"{}\"",	
-                        hex::encode(label),	
-                        message.len(),	
-                        label_str	
-                    );	
-                }	
-                Err(_) => {	
-                    println!(	
-                        "meta-AD : {} || LE32({})",	
-                        hex::encode(label),	
-                        message.len()	
-                    );	
-                }	
-            }	
-            match from_utf8(message) {	
-                Ok(message_str) => {	
-                    println!("     AD : {}\t# b\"{}\"", hex::encode(message), message_str);	
-                }	
-                Err(_) => {	
-                    println!("     AD : {}", hex::encode(message));	
-                }	
-            }	
+            match from_utf8(label) {
+                Ok(label_str) => {
+                    println!(
+                        "meta-AD : {} || LE32({})\t# b\"{}\"",
+                        hex::encode(label),
+                        message.len(),
+                        label_str
+                    );
+                }
+                Err(_) => {
+                    println!(
+                        "meta-AD : {} || LE32({})",
+                        hex::encode(label),
+                        message.len()
+                    );
+                }
+            }
+            match from_utf8(message) {
+                Ok(message_str) => {
+                    println!("     AD : {}\t# b\"{}\"", hex::encode(message), message_str);
+                }
+                Err(_) => {
+                    println!("     AD : {}", hex::encode(message));
+                }
+            }
         }
     }
 
@@ -247,24 +247,24 @@ impl Transcript {
         self.strobe.meta_ad(&data_len, true);
         self.strobe.prf(dest, false);
 
-        #[cfg(feature = "debug-transcript")]	
-        {	
-            use std::str::from_utf8;	
+        #[cfg(feature = "debug-transcript")]
+        {
+            use std::str::from_utf8;
 
-             match from_utf8(label) {	
-                Ok(label_str) => {	
-                    println!(	
-                        "meta-AD : {} || LE32({})\t# b\"{}\"",	
-                        hex::encode(label),	
-                        dest.len(),	
-                        label_str	
-                    );	
-                }	
-                Err(_) => {	
-                    println!("meta-AD : {} || LE32({})", hex::encode(label), dest.len());	
-                }	
-            }	
-            println!("     PRF: {}", hex::encode(dest));	
+            match from_utf8(label) {
+                Ok(label_str) => {
+                    println!(
+                        "meta-AD : {} || LE32({})\t# b\"{}\"",
+                        hex::encode(label),
+                        dest.len(),
+                        label_str
+                    );
+                }
+                Err(_) => {
+                    println!("meta-AD : {} || LE32({})", hex::encode(label), dest.len());
+                }
+            }
+            println!("     PRF: {}", hex::encode(dest));
         }
     }
 
