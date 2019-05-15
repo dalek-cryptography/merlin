@@ -184,6 +184,37 @@ impl Transcript {
         self.strobe.meta_ad(label, false);
         self.strobe.meta_ad(&data_len, true);
         self.strobe.ad(message, false);
+
+        #[cfg(feature = "debug-transcript")]	
+        {	
+            use std::str::from_utf8;	
+
+             match from_utf8(label) {	
+                Ok(label_str) => {	
+                    println!(	
+                        "meta-AD : {} || LE32({})\t# b\"{}\"",	
+                        hex::encode(label),	
+                        message.len(),	
+                        label_str	
+                    );	
+                }	
+                Err(_) => {	
+                    println!(	
+                        "meta-AD : {} || LE32({})",	
+                        hex::encode(label),	
+                        message.len()	
+                    );	
+                }	
+            }	
+            match from_utf8(message) {	
+                Ok(message_str) => {	
+                    println!("     AD : {}\t# b\"{}\"", hex::encode(message), message_str);	
+                }	
+                Err(_) => {	
+                    println!("     AD : {}", hex::encode(message));	
+                }	
+            }	
+        }
     }
 
     /// Convenience method for committing a `u64` to the transcript.
@@ -215,6 +246,26 @@ impl Transcript {
         self.strobe.meta_ad(label, false);
         self.strobe.meta_ad(&data_len, true);
         self.strobe.prf(dest, false);
+
+        #[cfg(feature = "debug-transcript")]	
+        {	
+            use std::str::from_utf8;	
+
+             match from_utf8(label) {	
+                Ok(label_str) => {	
+                    println!(	
+                        "meta-AD : {} || LE32({})\t# b\"{}\"",	
+                        hex::encode(label),	
+                        dest.len(),	
+                        label_str	
+                    );	
+                }	
+                Err(_) => {	
+                    println!("meta-AD : {} || LE32({})", hex::encode(label), dest.len());	
+                }	
+            }	
+            println!("     PRF: {}", hex::encode(dest));	
+        }
     }
 
     /// Fork the current [`Transcript`] to construct an RNG whose output is bound
