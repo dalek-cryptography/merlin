@@ -149,6 +149,16 @@ impl Transcript {
     pub fn new(label: &'static [u8]) -> Transcript {
         use constants::MERLIN_PROTOCOL_LABEL;
 
+        #[cfg(feature = "debug-transcript")]	
+        {	
+            use std::str::from_utf8;	
+            println!(	
+                "Initialize STROBE-128({})\t# b\"{}\"",	
+                hex::encode(MERLIN_PROTOCOL_LABEL),	
+                from_utf8(MERLIN_PROTOCOL_LABEL).unwrap(),	
+            );	
+        }	
+        
         let mut transcript = Transcript {
             strobe: Strobe128::new(MERLIN_PROTOCOL_LABEL),
         };
