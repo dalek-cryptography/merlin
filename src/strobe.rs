@@ -1,7 +1,7 @@
 //! Minimal implementation of (parts of) Strobe.
 
+use core::ops::{Deref, DerefMut};
 use keccak;
-use ::core::ops::{Deref, DerefMut};
 
 /// Strobe R value; security level 128 is hardcoded
 const STROBE_R: u8 = 166;
