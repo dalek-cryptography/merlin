@@ -25,14 +25,14 @@ rand_core = { version = "0.3", default-features = false }
 hex = {version = "0.3", default-features = false, optional = true}
 
 [dev-dependencies]
-strobe-rs = "0.3"
-curve25519-dalek = "1"
-rand_chacha = "0.1"
-rand = "0.6"
+strobe-rs = { version = "0.3", default-features = false }
+curve25519-dalek = { version = "1", default-features = false, features = ["u64_backend"] }
+rand_chacha = { version = "0.1", default-features = false }
+rand = { version = "0.6", default-features = false }
 
 [features]
 default = ["std"]
 nightly = ["clear_on_drop/nightly"]
 debug-transcript = ["hex"]
-std = ["rand_core/std", "byteorder/std"]
-alloc = ["rand_core/alloc"]
+std = ["rand_core/std", "rand/std", "byteorder/std"]
+alloc = ["rand_core/alloc", "rand/alloc"]
