@@ -1,7 +1,6 @@
 language: rust
 cache: cargo
 
-
 matrix:
   include:
   - rust: stable
@@ -13,6 +12,14 @@ matrix:
     script:
     - cargo test
     - cargo fmt --all -- --check
+  # Test if crate can be truly built without std
+  - rust: nightly
+    env: TARGET=thumbv7em-none-eabi
+    script: xargo build --no-default-features --features="nightly" --target $TARGET
+    install:
+      - cargo install xargo || true
+      - rustup target install armv7-unknown-linux-gnueabihf
+      - rustup component add rust-src
 
 notifications:
   slack:
