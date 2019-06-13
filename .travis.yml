@@ -15,12 +15,10 @@ matrix:
     - cargo fmt --all -- --check
   # Test if crate can be truly built without std
   - rust: nightly
-    env: TARGET=thumbv7em-none-eabi
-    script: xargo build --no-default-features --target $TARGET
+    script:
+      - cargo nono check --no-default-features
     install:
-      - cargo install xargo || true
-      - rustup target install armv7-unknown-linux-gnueabihf
-      - rustup component add rust-src
+      - cargo install cargo-nono || true
 
 notifications:
   slack:
