@@ -7,7 +7,7 @@ matrix:
   - rust: stable
     script:
     - cargo test
-  - rust: nightly-2018-12-04
+  - rust: nightly
     before_script:
     - rustup component add rustfmt-preview
     script:
