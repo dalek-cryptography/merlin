@@ -65,7 +65,7 @@ impl Transcript {
     /// **not by the proof implementation**.  See the [Passing
     /// Transcripts](https://merlin.cool/use/passing.html) section of
     /// the Merlin website for more details on why.
-    pub fn new(label: &'static [u8]) -> Transcript {
+    pub fn new(label: &[u8]) -> Transcript {
         use constants::MERLIN_PROTOCOL_LABEL;
 
         #[cfg(feature = "debug-transcript")]
