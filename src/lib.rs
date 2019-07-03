@@ -1,3 +1,4 @@
+#![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(feature = "nightly", feature(external_doc))]
 #![cfg_attr(feature = "nightly", doc(include = "../README.md"))]
 #![doc(html_logo_url = "https://doc.dalek.rs/assets/dalek-logo-clear.png")]
@@ -16,9 +17,11 @@ please file an issue!
 
 extern crate byteorder;
 extern crate clear_on_drop;
-extern crate core;
 extern crate keccak;
 extern crate rand_core;
+
+#[cfg(feature = "std")]
+extern crate core;
 
 #[cfg(test)]
 extern crate curve25519_dalek;
