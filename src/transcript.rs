@@ -1,6 +1,6 @@
 use rand_core;
 
-use strobe::Strobe128;
+use crate::strobe::Strobe128;
 
 fn encode_u64(x: u64) -> [u8; 8] {
     use byteorder::{ByteOrder, LittleEndian};
@@ -66,7 +66,7 @@ impl Transcript {
     /// Transcripts](https://merlin.cool/use/passing.html) section of
     /// the Merlin website for more details on why.
     pub fn new(label: &'static [u8]) -> Transcript {
-        use constants::MERLIN_PROTOCOL_LABEL;
+        use crate::constants::MERLIN_PROTOCOL_LABEL;
 
         #[cfg(feature = "debug-transcript")]
         {
@@ -391,7 +391,7 @@ mod tests {
     impl TestTranscript {
         /// Strobe init; meta-AD(label)
         pub fn new(label: &[u8]) -> TestTranscript {
-            use constants::MERLIN_PROTOCOL_LABEL;
+            use crate::constants::MERLIN_PROTOCOL_LABEL;
 
             let mut tt = TestTranscript {
                 state: Strobe::new(MERLIN_PROTOCOL_LABEL.to_vec(), SecParam::B128),

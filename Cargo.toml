@@ -3,6 +3,7 @@ name = "merlin"
 version = "1.1.0"
 authors = ["Henry de Valence <hdevalence@hdevalence.ca>",
            "isis agora lovecruft <isis@patternsinthevoid.net>"]
+edition = "2018"
 readme = "README.md"
 license = "MIT"
 repository = "https://github.com/dalek-cryptography/merlin"

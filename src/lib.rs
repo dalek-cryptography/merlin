@@ -38,6 +38,6 @@ mod constants;
 mod strobe;
 mod transcript;
 
-pub use transcript::Transcript;
-pub use transcript::TranscriptRng;
-pub use transcript::TranscriptRngBuilder;
+pub use crate::transcript::Transcript;
+pub use crate::transcript::TranscriptRng;
+pub use crate::transcript::TranscriptRngBuilder;
