@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+
+* Add `no_std` support.  The `std` feature is enabled by default.
+
 ## 1.1.0
 
 * Rename transcript functions to avoid any possible confusion between
