@@ -336,6 +336,18 @@ impl TranscriptRngBuilder {
             strobe: self.strobe,
         }
     }
+    pub fn finalize_trng(mut self,trng: &[u8]) -> TranscriptRng
+    {
+        let mut random_bytes = [0u8; 32];
+        random_bytes.copy_from_slice(&trng[..]);
+
+        self.strobe.meta_ad(b"rng", false);
+        self.strobe.key(&random_bytes, false);
+
+        TranscriptRng {
+            strobe: self.strobe,
+        }
+    }
 }
 
 /// An RNG providing synthetic randomness to the prover.
