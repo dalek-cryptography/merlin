@@ -28,7 +28,7 @@ hex = {version = "0.3", default-features = false, optional = true}
 strobe-rs = "0.3"
 curve25519-dalek = "1"
 rand_chacha = "0.1"
-rand = "0.6" 
+rand = "0.6"
 
 [features]
 default = ["std"]
