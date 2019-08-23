@@ -18,7 +18,7 @@ matrix:
     script:
       - cargo nono check --no-default-features --features nightly
     install:
-      - cargo install --force cargo-nono || true
+      - curl -LSfs https://japaric.github.io/trust/install.sh | sh -s -- --git hobofan/cargo-nono
 
 notifications:
   slack:
