@@ -1,8 +1,7 @@
 [package]
 name = "merlin"
 version = "1.2.0"
-authors = ["Henry de Valence <hdevalence@hdevalence.ca>",
-           "isis agora lovecruft <isis@patternsinthevoid.net>"]
+authors = ["Henry de Valence <hdevalence@hdevalence.ca>"]
 edition = "2018"
 readme = "README.md"
 license = "MIT"
