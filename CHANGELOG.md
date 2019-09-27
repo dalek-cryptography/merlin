@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.1
+
+* Switch to Rust 2018.
+* Update the `strobe-rs` dev-dependency used for conformance testing to `0.5.0`.
+
 ## 1.2.0
 
 * Add `no_std` support.  The `std` feature is enabled by default.
