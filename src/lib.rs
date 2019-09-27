@@ -15,29 +15,10 @@ please file an issue!
 "#
 );
 
-extern crate byteorder;
-extern crate clear_on_drop;
-extern crate keccak;
-extern crate rand_core;
-
-#[cfg(feature = "std")]
-extern crate core;
-
-#[cfg(test)]
-extern crate curve25519_dalek;
-#[cfg(feature = "hex")]
-extern crate hex;
-#[cfg(test)]
-extern crate rand;
-#[cfg(test)]
-extern crate rand_chacha;
-#[cfg(test)]
-extern crate strobe_rs;
-
 mod constants;
 mod strobe;
 mod transcript;
 
-pub use transcript::Transcript;
-pub use transcript::TranscriptRng;
-pub use transcript::TranscriptRngBuilder;
+pub use crate::transcript::Transcript;
+pub use crate::transcript::TranscriptRng;
+pub use crate::transcript::TranscriptRngBuilder;

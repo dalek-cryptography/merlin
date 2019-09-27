@@ -36,7 +36,7 @@ pub struct Strobe128 {
 }
 
 impl ::core::fmt::Debug for Strobe128 {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
         // Ensure that the Strobe state isn't accidentally logged
         write!(f, "Strobe128: STATE OMITTED")
     }
