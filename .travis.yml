@@ -13,12 +13,6 @@ matrix:
     script:
     - cargo test
     - cargo fmt --all -- --check
-  # Test if crate can be truly built without std, cargo-nono 0.1.5 now works against clear_on_drop and has been released
-  - rust: nightly
-    script:
-      - cargo nono check --no-default-features --features nightly
-    install:
-      - cargo install --force cargo-nono || true
 
 notifications:
   slack:
