@@ -376,7 +376,6 @@ impl rand_core::CryptoRng for TranscriptRng {}
 
 #[cfg(test)]
 mod tests {
-    use strobe_rs::OpFlags;
     use strobe_rs::SecParam;
     use strobe_rs::Strobe;
 
@@ -394,7 +393,7 @@ mod tests {
             use crate::constants::MERLIN_PROTOCOL_LABEL;
 
             let mut tt = TestTranscript {
-                state: Strobe::new(MERLIN_PROTOCOL_LABEL.to_vec(), SecParam::B128),
+                state: Strobe::new(MERLIN_PROTOCOL_LABEL, SecParam::B128),
             };
             tt.append_message(b"dom-sep", label);
 
@@ -404,13 +403,12 @@ mod tests {
         /// Strobe op: meta-AD(label || len(message)); AD(message)
         pub fn append_message(&mut self, label: &[u8], message: &[u8]) {
             // metadata = label || len(message);
-            let metaflags: OpFlags = OpFlags::A | OpFlags::M;
             let mut metadata: Vec<u8> = Vec::with_capacity(label.len() + 4);
             metadata.extend_from_slice(label);
             metadata.extend_from_slice(&encode_usize_as_u32(message.len()));
 
-            self.state
-                .ad(message.to_vec(), Some((metaflags, metadata)), false);
+            self.state.meta_ad(&metadata, false);
+            self.state.ad(&message, false);
         }
 
         /// Strobe op: meta-AD(label || len(dest)); PRF into challenge_bytes
@@ -418,13 +416,12 @@ mod tests {
             let prf_len = dest.len();
 
             // metadata = label || len(challenge_bytes);
-            let metaflags: OpFlags = OpFlags::A | OpFlags::M;
             let mut metadata: Vec<u8> = Vec::with_capacity(label.len() + 4);
             metadata.extend_from_slice(label);
             metadata.extend_from_slice(&encode_usize_as_u32(prf_len));
 
-            let bytes = self.state.prf(prf_len, Some((metaflags, metadata)), false);
-            dest.copy_from_slice(&bytes);
+            self.state.meta_ad(&metadata, false);
+            self.state.prf(dest, false);
         }
     }
 
