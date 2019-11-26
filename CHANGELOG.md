@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.0
+
+* Replace `clear_on_drop` with `zeroize`, and implement `Zeroize` for `Transcript`.
+
 ## 1.2.1
 
 * Switch to Rust 2018.
