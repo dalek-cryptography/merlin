@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.0
+
+* Update `rand_core` to `0.5`.  Because traits from `rand_core` are part of the
+  public API, this is technically a breaking change, but there are no other
+  changes to Merlin's API.
+
 ## 1.3.0
 
 * Replace `clear_on_drop` with `zeroize`, and implement `Zeroize` for `Transcript`.
