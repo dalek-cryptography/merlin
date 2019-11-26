@@ -233,7 +233,7 @@ impl Transcript {
 /// [`Transcript`] to an owned [`TranscriptRng`] as follows:
 /// ```
 /// # extern crate merlin;
-/// # extern crate rand;
+/// # extern crate rand_core;
 /// # use merlin::Transcript;
 /// # fn main() {
 /// # let mut transcript = Transcript::new(b"TranscriptRng doctest");
@@ -246,7 +246,7 @@ impl Transcript {
 ///     .build_rng()
 ///     .rekey_with_witness_bytes(b"witness1", witness_data)
 ///     .rekey_with_witness_bytes(b"witness2", more_witness_data)
-///     .finalize(&mut rand::thread_rng());
+///     .finalize(&mut rand_core::OsRng);
 /// # }
 /// ```
 /// In this example, the final `rng` is a PRF of `public_data`
@@ -477,8 +477,8 @@ mod tests {
     #[test]
     fn transcript_rng_is_bound_to_transcript_and_witnesses() {
         use curve25519_dalek::scalar::Scalar;
-        use rand::SeedableRng;
         use rand_chacha::ChaChaRng;
+        use rand_core::SeedableRng;
 
         // Check that the TranscriptRng is bound to the transcript and
         // the witnesses.  This is done by producing a sequence of
