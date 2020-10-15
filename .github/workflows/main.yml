@@ -3,7 +3,7 @@ name: Test merlin
 on:
   push:
   pull_request:
-    types: [opened, repoened, synchronize]
+    types: [opened, reopened, synchronize]
 
 jobs:
   native-test:
