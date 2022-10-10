@@ -1,7 +1,6 @@
 use rand_core;
+use strobe_rs::{SecParam, Strobe};
 use zeroize::Zeroize;
-
-use crate::strobe::Strobe128;
 
 fn encode_u64(x: u64) -> [u8; 8] {
     use byteorder::{ByteOrder, LittleEndian};
@@ -52,7 +51,7 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 /// Merlin](https://merlin.cool/use/index.html) section.
 #[derive(Clone, Zeroize)]
 pub struct Transcript {
-    strobe: Strobe128,
+    strobe: Strobe,
 }
 
 impl Transcript {
@@ -80,7 +79,7 @@ impl Transcript {
         }
 
         let mut transcript = Transcript {
-            strobe: Strobe128::new(MERLIN_PROTOCOL_LABEL),
+            strobe: Strobe::new(MERLIN_PROTOCOL_LABEL, SecParam::B128),
         };
         transcript.append_message(b"dom-sep", label);
 
@@ -279,7 +278,7 @@ impl Transcript {
 /// [rekey_with_witness_bytes]: TranscriptRngBuilder::rekey_with_witness_bytes
 /// [finalize]: TranscriptRngBuilder::finalize
 pub struct TranscriptRngBuilder {
-    strobe: Strobe128,
+    strobe: Strobe,
 }
 
 impl TranscriptRngBuilder {
@@ -349,7 +348,7 @@ impl TranscriptRngBuilder {
 /// Randomness](https://merlin.cool/transcript/rng.html) section of
 /// the Merlin website.
 pub struct TranscriptRng {
-    strobe: Strobe128,
+    strobe: Strobe,
 }
 
 impl rand_core::RngCore for TranscriptRng {
