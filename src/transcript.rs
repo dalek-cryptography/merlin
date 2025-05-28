@@ -1,5 +1,6 @@
 use rand_core;
-use zeroize::Zeroize;
+#[cfg(feature = "zeroize")]
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 use crate::strobe::Strobe128;
 
@@ -50,7 +51,8 @@ fn encode_usize_as_u32(x: usize) -> [u8; 4] {
 /// implement a proof system, see the documentation at
 /// [merlin.cool](https://merlin.cool), particularly the [Using
 /// Merlin](https://merlin.cool/use/index.html) section.
-#[derive(Clone, Zeroize)]
+#[derive(Clone)]
+#[cfg_attr(feature = "zeroize", derive(Zeroize, ZeroizeOnDrop))]
 pub struct Transcript {
     strobe: Strobe128,
 }
