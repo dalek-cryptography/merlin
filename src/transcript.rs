@@ -322,7 +322,7 @@ impl TranscriptRngBuilder {
     /// transcript data.
     pub fn finalize<R>(mut self, rng: &mut R) -> TranscriptRng
     where
-        R: rand_core::RngCore + rand_core::CryptoRng,
+        R: rand_core::Rng + rand_core::CryptoRng,
     {
         let random_bytes = {
             let mut bytes = [0u8; 32];
@@ -352,28 +352,26 @@ pub struct TranscriptRng {
     strobe: Strobe128,
 }
 
-impl rand_core::RngCore for TranscriptRng {
-    fn next_u32(&mut self) -> u32 {
-        rand_core::impls::next_u32_via_fill(self)
+impl rand_core::TryRng for TranscriptRng {
+    type Error = core::convert::Infallible;
+
+    fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
+        rand_core::utils::next_word_via_fill(self)
     }
 
-    fn next_u64(&mut self) -> u64 {
-        rand_core::impls::next_u64_via_fill(self)
+    fn try_next_u64(&mut self) -> Result<u64, Self::Error> {
+        rand_core::utils::next_word_via_fill(self)
     }
 
-    fn fill_bytes(&mut self, dest: &mut [u8]) {
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Self::Error> {
         let dest_len = encode_usize_as_u32(dest.len());
         self.strobe.meta_ad(&dest_len, false);
         self.strobe.prf(dest, false);
-    }
-
-    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core::Error> {
-        self.fill_bytes(dest);
         Ok(())
     }
 }
 
-impl rand_core::CryptoRng for TranscriptRng {}
+impl rand_core::TryCryptoRng for TranscriptRng {}
 
 #[cfg(test)]
 mod tests {
