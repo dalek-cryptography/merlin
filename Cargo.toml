@@ -2,7 +2,7 @@
 name = "merlin"
 version = "2.0.0"
 authors = ["Henry de Valence <hdevalence@hdevalence.ca>"]
-edition = "2018"
+edition = "2024"
 readme = "README.md"
 license = "MIT"
 repository = "https://github.com/dalek-cryptography/merlin"
@@ -12,10 +12,6 @@ categories = ["cryptography"]
 keywords = ["cryptography", "zero-knowledge", "fiat-shamir", "transcript"]
 description = "Composable proof transcripts for public-coin arguments of knowledge"
 exclude = [".travis.yml", ".gitignore"]
-
-[package.metadata.docs.rs]
-# We need nightly to build docs
-features = ["nightly"]
 
 [dependencies]
 keccak = { version = "0.2", default-features = false }
@@ -33,6 +29,5 @@ rand_chacha = "0.10"
 
 [features]
 default = ["std"]
-nightly = []
-debug-transcript = ["hex"]
-std = ["byteorder/std"]
+debug-transcript = ["dep:hex", "std"]
+std = ["byteorder/std", "hex/std"]
