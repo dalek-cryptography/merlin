@@ -1,4 +1,3 @@
-use rand_core;
 use zeroize::Zeroize;
 
 use crate::strobe::Strobe128;
@@ -14,7 +13,7 @@ fn encode_u64(x: u64) -> [u8; 8] {
 fn encode_usize_as_u32(x: usize) -> [u8; 4] {
     use byteorder::{ByteOrder, LittleEndian};
 
-    assert!(x <= (u32::max_value() as usize));
+    assert!(x <= (u32::MAX as usize));
 
     let mut buf = [0; 4];
     LittleEndian::write_u32(&mut buf, x as u32);
@@ -300,7 +299,7 @@ impl TranscriptRngBuilder {
     }
 
     /// Deprecated.  This function was renamed to
-    /// [`rekey_with_witness_bytes`](Transcript::rekey_with_witness_bytes).
+    /// [`rekey_with_witness_bytes`](TranscriptRngBuilder::rekey_with_witness_bytes).
     ///
     /// This is intended to avoid any possible confusion between the
     /// transcript-level messages and protocol-level commitments.
@@ -322,7 +321,7 @@ impl TranscriptRngBuilder {
     /// transcript data.
     pub fn finalize<R>(mut self, rng: &mut R) -> TranscriptRng
     where
-        R: rand_core::RngCore + rand_core::CryptoRng,
+        R: rand_core::Rng + rand_core::CryptoRng,
     {
         let random_bytes = {
             let mut bytes = [0u8; 32];
@@ -352,28 +351,26 @@ pub struct TranscriptRng {
     strobe: Strobe128,
 }
 
-impl rand_core::RngCore for TranscriptRng {
-    fn next_u32(&mut self) -> u32 {
-        rand_core::impls::next_u32_via_fill(self)
+impl rand_core::TryRng for TranscriptRng {
+    type Error = core::convert::Infallible;
+
+    fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
+        rand_core::utils::next_word_via_fill(self)
     }
 
-    fn next_u64(&mut self) -> u64 {
-        rand_core::impls::next_u64_via_fill(self)
+    fn try_next_u64(&mut self) -> Result<u64, Self::Error> {
+        rand_core::utils::next_word_via_fill(self)
     }
 
-    fn fill_bytes(&mut self, dest: &mut [u8]) {
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Self::Error> {
         let dest_len = encode_usize_as_u32(dest.len());
         self.strobe.meta_ad(&dest_len, false);
         self.strobe.prf(dest, false);
-    }
-
-    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core::Error> {
-        self.fill_bytes(dest);
         Ok(())
     }
 }
 
-impl rand_core::CryptoRng for TranscriptRng {}
+impl rand_core::TryCryptoRng for TranscriptRng {}
 
 #[cfg(test)]
 mod tests {
@@ -409,7 +406,7 @@ mod tests {
             metadata.extend_from_slice(&encode_usize_as_u32(message.len()));
 
             self.state.meta_ad(&metadata, false);
-            self.state.ad(&message, false);
+            self.state.ad(message, false);
         }
 
         /// Strobe op: meta-AD(label || len(dest)); PRF into challenge_bytes
