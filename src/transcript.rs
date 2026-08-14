@@ -1,4 +1,3 @@
-use rand_core;
 use zeroize::Zeroize;
 
 use crate::strobe::Strobe128;
@@ -14,7 +13,7 @@ fn encode_u64(x: u64) -> [u8; 8] {
 fn encode_usize_as_u32(x: usize) -> [u8; 4] {
     use byteorder::{ByteOrder, LittleEndian};
 
-    assert!(x <= (u32::max_value() as usize));
+    assert!(x <= (u32::MAX as usize));
 
     let mut buf = [0; 4];
     LittleEndian::write_u32(&mut buf, x as u32);
@@ -407,7 +406,7 @@ mod tests {
             metadata.extend_from_slice(&encode_usize_as_u32(message.len()));
 
             self.state.meta_ad(&metadata, false);
-            self.state.ad(&message, false);
+            self.state.ad(message, false);
         }
 
         /// Strobe op: meta-AD(label || len(dest)); PRF into challenge_bytes
