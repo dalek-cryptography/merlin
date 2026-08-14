@@ -299,7 +299,7 @@ impl TranscriptRngBuilder {
     }
 
     /// Deprecated.  This function was renamed to
-    /// [`rekey_with_witness_bytes`](Transcript::rekey_with_witness_bytes).
+    /// [`rekey_with_witness_bytes`](TranscriptRngBuilder::rekey_with_witness_bytes).
     ///
     /// This is intended to avoid any possible confusion between the
     /// transcript-level messages and protocol-level commitments.
